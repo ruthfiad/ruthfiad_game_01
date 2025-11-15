@@ -3,43 +3,55 @@ using UnityEngine.SceneManagement;
 
 public class Ball : MonoBehaviour
 {
-    // Called when this object collides with another
+    [Header("Game Over Settings")]
+    public GameObject gameOverUI; // Canvas з Game Over меню
+
+    private bool isGameOver = false;
+
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log ("Ball collision width " + collision.gameObject.name);
+        Debug.Log("Ball collision with " + collision.gameObject.name);
 
-        // Check if the collided object has the "Target" tag
+        // Якщо м'яч торкається Plane — Game Over
+        if (!isGameOver && collision.gameObject.name == "Plane")
+        {
+            GameOver();
+        }
+
+        // Якщо м'яч торкається Target — перехід на наступну сцену
         if (collision.gameObject.CompareTag("Target"))
         {
-            Debug.Log("Ball hit the Target!");
-            Debug.Log("Loading next scene...");
-
-            // Get current scene index
-            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-
-            // Calculate next scene index
-            int nextSceneIndex = currentSceneIndex + 1;
-
-            // If the last scene is reached, restart from the first one
-            if (nextSceneIndex >= SceneManager.sceneCountInBuildSettings)
-            {
-                nextSceneIndex = 0;
-            }
-
-            // Load the next scene
-            SceneManager.LoadScene(nextSceneIndex);
+            NextLevel();
         }
     }
 
-    // (Optional) debug shortcut — press Space to skip to the next level manually
-    void Update()
+    private void GameOver()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        isGameOver = true;
+        Time.timeScale = 0f; // зупиняємо час
+        gameOverUI.SetActive(true); // показуємо меню
+        Debug.Log("GAME OVER!");
+    }
+
+    private void NextLevel()
+    {
+        Debug.Log("Ball hit the Target! Loading next scene...");
+
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        int nextSceneIndex = currentSceneIndex + 1;
+
+        if (nextSceneIndex >= SceneManager.sceneCountInBuildSettings)
         {
-            Debug.Log("Manual level skip");
-            int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-            int nextSceneIndex = (currentSceneIndex + 1) % SceneManager.sceneCountInBuildSettings;
-            SceneManager.LoadScene(nextSceneIndex);
+            nextSceneIndex = 0; // якщо це остання сцена — повертаємось на першу
         }
+
+        SceneManager.LoadScene(nextSceneIndex);
+    }
+
+    // Викликається кнопкою Restart
+    public void Restart()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
